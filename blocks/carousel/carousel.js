@@ -13,8 +13,22 @@ export default function decorate(block) {
   const slider = document.createElement('ul');
   const leftContent = document.createElement('div');
   
+  // Find the first row index that should be a carousel item
+  // This is typically the first row with 4 children (image, content, style config, cta config)
+  let carouselStartIndex = 0;
+  [...block.children].forEach((row, index) => {
+    if (row.children.length === 4 && carouselStartIndex === 0 && index > 0) {
+      carouselStartIndex = index;
+    }
+  });
+  
+  // If no carousel items found, default to starting after row 3
+  if (carouselStartIndex === 0) {
+    carouselStartIndex = 4;
+  }
+  
   [...block.children].forEach((row) => {
-    if (i > 3) {
+    if (i >= carouselStartIndex) {
       const li = document.createElement('li');
       
       // Read card style from the third div (index 2)
