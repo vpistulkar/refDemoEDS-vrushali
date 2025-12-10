@@ -18,7 +18,13 @@ export default function decorate(block) {
       childCount: row.children.length,
       html: row.innerHTML.substring(0, 200)
     });
-    if (i > 3) {
+    
+    // Check if this row has actual content (more than just empty divs)
+    // Skip rows with only 1 child or rows where all children are empty
+    const hasContent = row.children.length > 1 && 
+                       Array.from(row.children).some(child => child.innerHTML.trim() !== '');
+    
+    if (hasContent && i > 0) {  // Changed from i > 3 to i > 0
       console.log('Carousel: Processing row', i, 'as carousel item');
       const li = document.createElement('li');
       
