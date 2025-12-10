@@ -14,6 +14,10 @@ export default function decorate(block) {
   const leftContent = document.createElement('div');
   console.log('Carousel: Total rows:', block.children.length);
   [...block.children].forEach((row) => {
+    console.log('Row', i, 'structure:', {
+      childCount: row.children.length,
+      html: row.innerHTML.substring(0, 200)
+    });
     if (i > 3) {
       console.log('Carousel: Processing row', i, 'as carousel item');
       const li = document.createElement('li');
@@ -76,6 +80,7 @@ export default function decorate(block) {
       });
       
       slider.append(li);
+      console.log('Li element created with children:', li.children.length, 'HTML preview:', li.innerHTML.substring(0, 300));
     } else {
       console.log('Carousel: Row', i, 'added to leftContent (header area)');
       if (row.firstElementChild.firstElementChild) {
