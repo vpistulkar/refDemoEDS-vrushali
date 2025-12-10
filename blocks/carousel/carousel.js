@@ -26,6 +26,7 @@ export default function decorate(block) {
   });
   
   [...block.children].forEach((row) => {
+    console.log('Processing row', i, '- children:', row.children.length, 'first div content:', row.children[0]?.innerHTML.substring(0, 100));
     if (i > 3) {
       const li = document.createElement('li');
       
@@ -88,6 +89,7 @@ export default function decorate(block) {
       
       // If the cards-card-image div is empty and we have images from rows 1-3, inject one
       const imageDiv = li.querySelector('.cards-card-image');
+      console.log('Row', i, '- imageDiv content before injection:', imageDiv?.innerHTML.substring(0, 100), 'available images:', imageRows.length);
       if (imageDiv && !imageDiv.querySelector('img, picture') && imageRows.length > 0) {
         const imageRow = imageRows.shift(); // Take first available image row
         const imageContent = imageRow.querySelector('div'); // Get first div which contains the image
