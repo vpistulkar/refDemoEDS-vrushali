@@ -87,63 +87,41 @@ export default function decorate(block) {
     i += 1;
   });
 
-  // Process Dynamic Media images first
+  // Handle Dynamic Media images first
   slider.querySelectorAll('a[href^="https://delivery-p"]').forEach((a) => {
     const url = new URL(a.href.split('?')[0]);
     if (url.hostname.endsWith('.adobeaemcloud.com')) {
-      const videoExtensions = ['.mp4', '.mov', '.avi', '.webm', '.ogg', '.m4v', '.mkv'];
-      const isVideoAsset = videoExtensions.some(ext => url.href.toLowerCase().includes(ext));
-      
-      if (!isVideoAsset) {
-        const uuidPattern = /([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})/i;
-        const match = url.href?.match(uuidPattern);
-        
-        if (match) {
-          const hrefWOExtn = url.href?.substring(0, url.href?.lastIndexOf('.'))?.replace(/\/original\/(?=as\/)/, '/');
-          const pictureEl = picture(
-            source({ 
-              srcset: `${hrefWOExtn}.webp?width=1400&quality=85&preferwebp=true`, 
-              type: 'image/webp', 
-              media: '(min-width: 992px)' 
-            }),
-            source({ 
-              srcset: `${hrefWOExtn}.webp?width=1320&quality=85&preferwebp=true`, 
-              type: 'image/webp', 
-              media: '(min-width: 768px)' 
-            }),
-            source({ 
-              srcset: `${hrefWOExtn}.webp?width=780&quality=85&preferwebp=true`, 
-              type: 'image/webp', 
-              media: '(min-width: 320px)' 
-            }),
-            source({ 
-              srcset: `${hrefWOExtn}.webp?width=1400&quality=85`, 
-              media: '(min-width: 992px)' 
-            }),
-            source({ 
-              srcset: `${hrefWOExtn}.webp?width=1320&quality=85`, 
-              media: '(min-width: 768px)' 
-            }),
-            source({ 
-              srcset: `${hrefWOExtn}.webp?width=780&quality=85`, 
-              media: '(min-width: 320px)' 
-            }),
-            img({ 
-              src: `${hrefWOExtn}.webp?width=1400&quality=85`, 
-              alt: a.innerText 
-            }),
-          );
-          a.replaceWith(pictureEl);
-        }
-      }
+      const hrefWOExtn = url.href?.substring(0, url.href?.lastIndexOf('.'))?.replace(/\/original\/(?=as\/)/, '/');
+      const pictureEl = picture(
+        source({ 
+          srcset: `${hrefWOExtn}.webp?width=750&quality=85&preferwebp=true`, 
+          type: 'image/webp'
+        }),
+        img({ 
+          src: `${hrefWOExtn}.webp?width=750&quality=85`, 
+          alt: a.innerText || ''
+        }),
+      );
+      a.replaceWith(pictureEl);
     }
   });
 
+  // Handle regular pictures
   slider.querySelectorAll('picture > img').forEach((img) => {
     const optimizedPic = createOptimizedPicture(img.src, img.alt, false, [{ width: '750' }]);
     moveInstrumentation(img, optimizedPic.querySelector('img'));
     img.closest('picture').replaceWith(optimizedPic);
   });
+
+  // Accessibility: preserve visual style but expose proper heading level to AT
+  // Use aria-level so we don't change font sizes. Default to level 3, or infer from data-heading-level on the block.
+  const base = parseInt(block?.dataset?.headingLevel, 10);
+  const ariaLevel = Number.isFinite(base) ? Math.min(Math.max(base, 1) + 1, 6) : 3;
+  slider.querySelectorAll('h4,h5,h6').forEach((node) => {
+    node.setAttribute('role', 'heading');
+    node.setAttribute('aria-level', String(ariaLevel));
+  });
+
   block.textContent = '';
   block.parentNode.parentNode.prepend(leftContent);
   block.append(slider);
