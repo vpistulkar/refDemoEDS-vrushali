@@ -12,25 +12,21 @@ export default function decorate(block) {
   setCarouselItems(2);
   const slider = document.createElement('ul');
   const leftContent = document.createElement('div');
-  console.log('Carousel: Total rows:', block.children.length);
   
-  // First pass: collect all rows with image content
+  // First pass: collect all rows with image content from rows 0-3
   const imageRows = [];
   [...block.children].forEach((row, index) => {
-    const hasImage = row.querySelector('img') || row.querySelector('picture');
-    if (hasImage && index > 0) {  // Skip row 0, but collect image rows
-      imageRows.push(row);
-      console.log('Found image in row', index);
+    if (index > 0 && index <= 3) {  // Rows 1-3
+      const hasImage = row.querySelector('img') || row.querySelector('picture');
+      if (hasImage) {
+        imageRows.push(row);
+        console.log('Found image in row', index, '- will inject into carousel items');
+      }
     }
   });
   
   [...block.children].forEach((row) => {
-    console.log('Row', i, 'structure:', {
-      childCount: row.children.length,
-      html: row.innerHTML.substring(0, 200)
-    });
     if (i > 3) {
-      console.log('Carousel: Processing row', i, 'as carousel item');
       const li = document.createElement('li');
       
       // Read card style from the third div (index 2)
@@ -90,13 +86,14 @@ export default function decorate(block) {
         buttonContainer.classList.add(ctaStyle);
       });
       
-      // If the cards-card-image div is empty and we have images from early rows, inject one
+      // If the cards-card-image div is empty and we have images from rows 1-3, inject one
       const imageDiv = li.querySelector('.cards-card-image');
       if (imageDiv && !imageDiv.querySelector('img, picture') && imageRows.length > 0) {
         const imageRow = imageRows.shift(); // Take first available image row
         const imageContent = imageRow.querySelector('div'); // Get first div which contains the image
         if (imageContent) {
-          console.log('Injecting image from early row into carousel item');
+          console.log('Injecting image from row into carousel item', i);
+          // Move all children from the image content div into the carousel item's image div
           while (imageContent.firstChild) {
             imageDiv.appendChild(imageContent.firstChild);
           }
@@ -104,33 +101,24 @@ export default function decorate(block) {
       }
       
       slider.append(li);
-      console.log('Li element created with children:', li.children.length, 'HTML preview:', li.innerHTML.substring(0, 300));
     } else {
-      console.log('Carousel: Row', i, 'added to leftContent (header area)');
-      if (row.firstElementChild.firstElementChild) {
-        leftContent.append(row.firstElementChild.firstElementChild);
+      // Skip rows that contain images (they'll be injected into carousel items instead)
+      const hasImage = row.querySelector('img') || row.querySelector('picture');
+      if (!hasImage) {
+        if (row.firstElementChild.firstElementChild) {
+          leftContent.append(row.firstElementChild.firstElementChild);
+        }
+        if (row.firstElementChild) {
+          leftContent.append(row.firstElementChild.firstElementChild || '');
+        }
+        leftContent.className = 'default-content-wrapper';
+      } else {
+        console.log('Skipping row', i, 'with image from leftContent - will inject into carousel');
       }
-      if (row.firstElementChild) {
-        leftContent.append(row.firstElementChild.firstElementChild || '');
-      }
-      leftContent.className = 'default-content-wrapper';
     }
     i += 1;
   });
-  
-  console.log('Carousel: Slider items created:', slider.children.length);
-  console.log('Carousel: DM image links found:', slider.querySelectorAll('a[href^="https://delivery-p"]').length);
-  console.log('Carousel: Regular pictures found:', slider.querySelectorAll('picture').length);
-  console.log('Carousel: Plain img tags found:', slider.querySelectorAll('img:not(picture img)').length);
 
-  // Handle plain img tags that aren't wrapped in picture elements
-  slider.querySelectorAll('img:not(picture img)').forEach((img) => {
-    const optimizedPic = createOptimizedPicture(img.src, img.alt, false, [{ width: '750' }]);
-    moveInstrumentation(img, optimizedPic.querySelector('img'));
-    img.replaceWith(optimizedPic);
-  });
-
-  // Handle pictures that need optimization
   slider.querySelectorAll('picture > img').forEach((img) => {
     const optimizedPic = createOptimizedPicture(img.src, img.alt, false, [{ width: '750' }]);
     moveInstrumentation(img, optimizedPic.querySelector('img'));
