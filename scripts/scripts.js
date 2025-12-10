@@ -322,11 +322,22 @@ export function decorateDMImages(main) {
         if(blockBeingDecorated && blockBeingDecorated.classList){
             blockName = Array.from(blockBeingDecorated.classList).find(className => className !== 'block');
         }
+                // Debug logging
+                console.log('DM Image Processing:', {
+                  href: a.href.substring(0, 50) + '...',
+                  blockElement: blockBeingDecorated,
+                  blockClasses: blockBeingDecorated?.classList ? Array.from(blockBeingDecorated.classList) : null,
+                  extractedBlockName: blockName
+                });
        const videoExtensions = ['.mp4', '.mov', '.avi', '.webm', '.ogg', '.m4v', '.mkv'];
        const isVideoAsset = videoExtensions.some(ext => url.href.toLowerCase().includes(ext));
        // Skip blocks that handle their own image decoration
        const excludedBlocks = ['video', 'carousel', 'cards'];
-       if (isVideoAsset || excludedBlocks.includes(blockName)) return;
+       if (isVideoAsset || excludedBlocks.includes(blockName)) {
+        console.log('Skipping DM image - block:', blockName, 'isVideo:', isVideoAsset);
+        return;
+      }
+      console.log('Processing DM image - not excluded');
         if(blockName && blockName === 'dynamicmedia-image'){
           rotate = blockBeingDecorated?.children[3]?.textContent?.trim();
           flip = blockBeingDecorated?.children[4]?.textContent?.trim();
