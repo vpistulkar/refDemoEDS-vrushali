@@ -92,7 +92,16 @@ export default function decorate(block) {
   console.log('Carousel: Slider items created:', slider.children.length);
   console.log('Carousel: DM image links found:', slider.querySelectorAll('a[href^="https://delivery-p"]').length);
   console.log('Carousel: Regular pictures found:', slider.querySelectorAll('picture').length);
+  console.log('Carousel: Plain img tags found:', slider.querySelectorAll('img:not(picture img)').length);
 
+  // Handle plain img tags that aren't wrapped in picture elements
+  slider.querySelectorAll('img:not(picture img)').forEach((img) => {
+    const optimizedPic = createOptimizedPicture(img.src, img.alt, false, [{ width: '750' }]);
+    moveInstrumentation(img, optimizedPic.querySelector('img'));
+    img.replaceWith(optimizedPic);
+  });
+
+  // Handle pictures that need optimization
   slider.querySelectorAll('picture > img').forEach((img) => {
     const optimizedPic = createOptimizedPicture(img.src, img.alt, false, [{ width: '750' }]);
     moveInstrumentation(img, optimizedPic.querySelector('img'));
