@@ -1,7 +1,6 @@
 import { createOptimizedPicture } from '../../scripts/aem.js';
 import { moveInstrumentation } from '../../scripts/scripts.js';
 import createSlider from '../../scripts/slider.js';
-import { picture, source, img } from '../../scripts/dom-helpers.js';
 
 
 function setCarouselItems(number) {
@@ -13,8 +12,10 @@ export default function decorate(block) {
   setCarouselItems(2);
   const slider = document.createElement('ul');
   const leftContent = document.createElement('div');
+  console.log('Carousel: Total rows:', block.children.length);
   [...block.children].forEach((row) => {
     if (i > 3) {
+      console.log('Carousel: Processing row', i, 'as carousel item');
       const li = document.createElement('li');
       
       // Read card style from the third div (index 2)
@@ -76,6 +77,7 @@ export default function decorate(block) {
       
       slider.append(li);
     } else {
+      console.log('Carousel: Row', i, 'added to leftContent (header area)');
       if (row.firstElementChild.firstElementChild) {
         leftContent.append(row.firstElementChild.firstElementChild);
       }
@@ -86,27 +88,11 @@ export default function decorate(block) {
     }
     i += 1;
   });
+  
+  console.log('Carousel: Slider items created:', slider.children.length);
+  console.log('Carousel: DM image links found:', slider.querySelectorAll('a[href^="https://delivery-p"]').length);
+  console.log('Carousel: Regular pictures found:', slider.querySelectorAll('picture').length);
 
-  // Handle Dynamic Media images first
-  slider.querySelectorAll('a[href^="https://delivery-p"]').forEach((a) => {
-    const url = new URL(a.href.split('?')[0]);
-    if (url.hostname.endsWith('.adobeaemcloud.com')) {
-      const hrefWOExtn = url.href?.substring(0, url.href?.lastIndexOf('.'))?.replace(/\/original\/(?=as\/)/, '/');
-      const pictureEl = picture(
-        source({ 
-          srcset: `${hrefWOExtn}.webp?width=750&quality=85&preferwebp=true`, 
-          type: 'image/webp'
-        }),
-        img({ 
-          src: `${hrefWOExtn}.webp?width=750&quality=85`, 
-          alt: a.innerText || ''
-        }),
-      );
-      a.replaceWith(pictureEl);
-    }
-  });
-
-  // Handle regular pictures
   slider.querySelectorAll('picture > img').forEach((img) => {
     const optimizedPic = createOptimizedPicture(img.src, img.alt, false, [{ width: '750' }]);
     moveInstrumentation(img, optimizedPic.querySelector('img'));
