@@ -13,6 +13,17 @@ export default function decorate(block) {
   const slider = document.createElement('ul');
   const leftContent = document.createElement('div');
   console.log('Carousel: Total rows:', block.children.length);
+  
+  // First pass: collect all rows with image content
+  const imageRows = [];
+  [...block.children].forEach((row, index) => {
+    const hasImage = row.querySelector('img') || row.querySelector('picture');
+    if (hasImage && index > 0) {  // Skip row 0, but collect image rows
+      imageRows.push(row);
+      console.log('Found image in row', index);
+    }
+  });
+  
   [...block.children].forEach((row) => {
     console.log('Row', i, 'structure:', {
       childCount: row.children.length,
@@ -78,6 +89,19 @@ export default function decorate(block) {
         // Add the correct CTA class
         buttonContainer.classList.add(ctaStyle);
       });
+      
+      // If the cards-card-image div is empty and we have images from early rows, inject one
+      const imageDiv = li.querySelector('.cards-card-image');
+      if (imageDiv && !imageDiv.querySelector('img, picture') && imageRows.length > 0) {
+        const imageRow = imageRows.shift(); // Take first available image row
+        const imageContent = imageRow.querySelector('div'); // Get first div which contains the image
+        if (imageContent) {
+          console.log('Injecting image from early row into carousel item');
+          while (imageContent.firstChild) {
+            imageDiv.appendChild(imageContent.firstChild);
+          }
+        }
+      }
       
       slider.append(li);
       console.log('Li element created with children:', li.children.length, 'HTML preview:', li.innerHTML.substring(0, 300));
