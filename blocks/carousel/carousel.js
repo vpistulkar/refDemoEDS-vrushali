@@ -13,20 +13,7 @@ export default function decorate(block) {
   const slider = document.createElement('ul');
   const leftContent = document.createElement('div');
   
-  // First pass: collect all rows with image content from rows 0-3
-  const imageRows = [];
-  [...block.children].forEach((row, index) => {
-    if (index > 0 && index <= 3) {  // Rows 1-3
-      const hasImage = row.querySelector('img') || row.querySelector('picture');
-      if (hasImage) {
-        imageRows.push(row);
-        console.log('Found image in row', index, '- will inject into carousel items');
-      }
-    }
-  });
-  
   [...block.children].forEach((row) => {
-    console.log('Processing row', i, '- children:', row.children.length, 'first div content:', row.children[0]?.innerHTML.substring(0, 100));
     if (i > 3) {
       const li = document.createElement('li');
       
@@ -87,35 +74,19 @@ export default function decorate(block) {
         buttonContainer.classList.add(ctaStyle);
       });
       
-      // If the cards-card-image div is empty and we have images from rows 1-3, inject one
-      const imageDiv = li.querySelector('.cards-card-image');
-      console.log('Row', i, '- imageDiv content before injection:', imageDiv?.innerHTML.substring(0, 100), 'available images:', imageRows.length);
-      if (imageDiv && !imageDiv.querySelector('img, picture') && imageRows.length > 0) {
-        const imageRow = imageRows.shift(); // Take first available image row
-        const imageContent = imageRow.querySelector('div'); // Get first div which contains the image
-        if (imageContent) {
-          console.log('Injecting image from row into carousel item', i);
-          // Move all children from the image content div into the carousel item's image div
-          while (imageContent.firstChild) {
-            imageDiv.appendChild(imageContent.firstChild);
-          }
-        }
-      }
-      
       slider.append(li);
     } else {
-      // Skip rows that contain images (they'll be injected into carousel items instead)
+      // Skip rows that contain images - they should not be in leftContent
+      // This prevents images from appearing outside/above the carousel
       const hasImage = row.querySelector('img') || row.querySelector('picture');
       if (!hasImage) {
-        if (row.firstElementChild.firstElementChild) {
+        if (row.firstElementChild?.firstElementChild) {
           leftContent.append(row.firstElementChild.firstElementChild);
         }
         if (row.firstElementChild) {
           leftContent.append(row.firstElementChild.firstElementChild || '');
         }
         leftContent.className = 'default-content-wrapper';
-      } else {
-        console.log('Skipping row', i, 'with image from leftContent - will inject into carousel');
       }
     }
     i += 1;

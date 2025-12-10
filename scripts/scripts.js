@@ -327,10 +327,8 @@ export function decorateDMImages(main) {
        // Skip blocks that handle their own image decoration
        const excludedBlocks = ['video', 'carousel', 'cards'];
        if (isVideoAsset || excludedBlocks.includes(blockName)) {
-        console.log('DM Image SKIPPED - block:', blockName, 'isVideo:', isVideoAsset, 'href:', url.href.substring(0, 50));
         return;
       }
-      console.log('DM Image PROCESSING - block:', blockName, 'href:', url.href.substring(0, 50));
         if(blockName && blockName === 'dynamicmedia-image'){
           rotate = blockBeingDecorated?.children[3]?.textContent?.trim();
           flip = blockBeingDecorated?.children[4]?.textContent?.trim();
