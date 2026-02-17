@@ -23,18 +23,27 @@ function createVideoPlayer(videoSrc, autoplay = false) {
         class: 'pause-icon controls', src: pauseIcon, width: 28, height: 28, alt: 'pause animation',
       })),
     ),
-    video({ id: 'videoPlayer' },
+    video({ id: 'videoPlayer', width: '100%', height: '100%' },
       source({ src: videoSrc, type: 'video/mp4' }, 'Your browser does not support the video tag.'),
     ),
   );
 
   const videoEl = videoPlayer.querySelector('video');
-  videoEl.muted = true;
-  videoEl.playsInline = true;
-  videoEl.loop = true;
-  if (autoplay) {
-    videoEl.autoplay = true;
-    videoEl.setAttribute('autoplay', '');
+  if (videoEl) {
+    videoEl.muted = true;
+    videoEl.playsInline = true;
+    videoEl.loop = true;
+    videoEl.setAttribute('preload', 'auto');
+    // Ensure video source is set
+    const sourceEl = videoEl.querySelector('source');
+    if (sourceEl && videoSrc) {
+      sourceEl.src = videoSrc;
+      videoEl.load(); // Reload video with new source
+    }
+    if (autoplay) {
+      videoEl.autoplay = true;
+      videoEl.setAttribute('autoplay', '');
+    }
   }
 
   return videoPlayer;
