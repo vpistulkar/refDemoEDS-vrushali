@@ -21,6 +21,9 @@
     width: 100%;
     position: absolute;
     height: 482px;
+    z-index: 0;
+    display: block;
+    visibility: visible;
 }
 
 .teaser-wrapper .video-container .video-play-btn, .teaser-wrapper .video-container .video-pause-btn {
@@ -63,6 +66,9 @@ html[dir="rtl"] .teaser-wrapper .video-container .video-pause .video-pause-btn{
     object-fit: cover;
     object-position: center;
     border-radius: 10px;
+    display: block;
+    position: relative;
+    z-index: 0;
 }
 
 .teaser-wrapper .teaser-background {
