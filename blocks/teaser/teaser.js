@@ -13,37 +13,27 @@ function createVideoPlayer(videoSrc, autoplay = false) {
   // adding newlines after paren makes this harder to read
   /* eslint-disable function-paren-newline */
   const videoPlayer = div({ class: 'video-container' },
-    div({ class: 'video-play', id: 'playButton', tabindex: 0 },
+    div({ class: autoplay ? 'video-play inactive' : 'video-play', tabindex: autoplay ? -1 : 0 },
       button({ class: 'video-play-btn', 'aria-label': 'video-play-btn' }, img({
         class: 'play-icon controls', src: playIcon, width: 28, height: 28, alt: 'play animation',
       })),
     ),
-    div({ class: 'video-pause inactive', id: 'pauseButton' },
+    div({ class: autoplay ? 'video-pause' : 'video-pause inactive', tabindex: autoplay ? 0 : -1 },
       button({ class: 'video-pause-btn', 'aria-label': 'video-pause-btn' }, img({
         class: 'pause-icon controls', src: pauseIcon, width: 28, height: 28, alt: 'pause animation',
       })),
     ),
-    video({ id: 'videoPlayer', width: '100%', height: '100%' },
+    video({ autoplay: autoplay },
       source({ src: videoSrc, type: 'video/mp4' }, 'Your browser does not support the video tag.'),
     ),
   );
 
   const videoEl = videoPlayer.querySelector('video');
-  if (videoEl) {
-    videoEl.muted = true;
-    videoEl.playsInline = true;
-    videoEl.loop = true;
-    videoEl.setAttribute('preload', 'auto');
-    // Ensure video source is set
-    const sourceEl = videoEl.querySelector('source');
-    if (sourceEl && videoSrc) {
-      sourceEl.src = videoSrc;
-      videoEl.load(); // Reload video with new source
-    }
-    if (autoplay) {
-      videoEl.autoplay = true;
-      videoEl.setAttribute('autoplay', '');
-    }
+  videoEl.muted = true;
+  videoEl.playsInline = true;
+  videoEl.loop = true;
+  if (autoplay) {
+    videoEl.dataset.state = 'play';
   }
 
   return videoPlayer;
@@ -65,53 +55,27 @@ function createBackgroundImage(properties) {
 
 function observeVideo(block, autoplay) {
   const videoPlayerEl = block.querySelector('video');
-  if (!videoPlayerEl) return;
-
-  // Initialize video state
-  if (!videoPlayerEl.dataset.state) {
-    videoPlayerEl.dataset.state = autoplay ? 'play' : 'pause';
-  }
-
-  // If autoplay is enabled and video is already in viewport, start playing
-  if (autoplay && !prefersReducedMotion.matches) {
-    const rect = videoPlayerEl.getBoundingClientRect();
-    const isInViewport = rect.top < window.innerHeight && rect.bottom > 0;
-    
-    if (isInViewport && videoPlayerEl.dataset.state !== 'pause') {
-      const playButton = block.querySelector('#playButton');
-      const pauseButton = block.querySelector('#pauseButton');
-      if (playButton && pauseButton) {
-        playButton.classList.add('inactive');
-        playButton.removeAttribute('tabindex');
-        pauseButton.classList.remove('inactive');
-        pauseButton.setAttribute('tabindex', 0);
-      }
-      videoPlayerEl.play().catch((error) => {
-        // Handle autoplay policy restrictions
-        console.warn('Video autoplay failed:', error);
-      });
-    }
-  }
-
+  const playButton = block.querySelector('.video-play');
+  const pauseButton = block.querySelector('.video-pause');
+  
   const observer = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
       if (entry.isIntersecting) {
         if (!(prefersReducedMotion.matches) && autoplay && (videoPlayerEl.dataset.state !== 'pause')) {
-          const playButton = block.querySelector('#playButton');
-          const pauseButton = block.querySelector('#pauseButton');
-          if (playButton && pauseButton) {
-            playButton.classList.add('inactive');
-            playButton.removeAttribute('tabindex');
-            pauseButton.classList.remove('inactive');
-            pauseButton.setAttribute('tabindex', 0);
-          }
-          videoPlayerEl.play().catch((error) => {
-            // Handle autoplay policy restrictions
-            console.warn('Video autoplay failed:', error);
+          playButton.classList.add('inactive');
+          playButton.removeAttribute('tabindex');
+          pauseButton.classList.remove('inactive');
+          pauseButton.setAttribute('tabindex', 0);
+          videoPlayerEl.play().catch(() => {
+            // Autoplay was prevented, fallback to manual play
+            playButton.classList.remove('inactive');
+            playButton.setAttribute('tabindex', 0);
+            pauseButton.classList.add('inactive');
+            pauseButton.removeAttribute('tabindex');
           });
         }
       } else {
-        if (autoplay) {
+        if (autoplay && videoPlayerEl.dataset.state !== 'pause') {
           videoPlayerEl.pause(); // Pause the video when it leaves the viewport
         }
       }
@@ -120,10 +84,10 @@ function observeVideo(block, autoplay) {
   observer.observe(videoPlayerEl);
 }
 
-function attachListeners() {
-  const videoPlayer = document.getElementById('videoPlayer');
-  const playButton = document.getElementById('playButton');
-  const pauseButton = document.getElementById('pauseButton');
+function attachListeners(block) {
+  const videoPlayer = block.querySelector('video');
+  const playButton = block.querySelector('.video-play');
+  const pauseButton = block.querySelector('.video-pause');
 
   // Play the video when the play button is clicked or a keyboard button pressed
   ['click', 'keydown'].forEach((eventType) => {
@@ -208,6 +172,24 @@ export default function decorate(block) {
   block.appendChild(teaser);
 
   // add observer for video and listeners for play/pause
-  if (isVideo) observeVideo(block, videoAutoplay);
-  if (isVideo) attachListeners();
+  if (isVideo) {
+    attachListeners(block);
+    observeVideo(block, videoAutoplay);
+    
+    // If autoplay is enabled, try to play immediately (if not prevented by browser)
+    if (videoAutoplay && !prefersReducedMotion.matches) {
+      const videoEl = block.querySelector('video');
+      videoEl.play().catch(() => {
+        // Autoplay was prevented by browser policy, show play button
+        const playButton = block.querySelector('.video-play');
+        const pauseButton = block.querySelector('.video-pause');
+        playButton.classList.remove('inactive');
+        playButton.setAttribute('tabindex', 0);
+        pauseButton.classList.add('inactive');
+        pauseButton.removeAttribute('tabindex');
+        videoEl.removeAttribute('autoplay');
+        videoEl.dataset.state = 'pause';
+      });
+    }
+  }
 }
