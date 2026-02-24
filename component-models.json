@@ -636,6 +636,23 @@
     "id": "hero",
     "fields": [
       {
+        "component": "select",
+        "name": "backgroundtype",
+        "label": "Background Type",
+        "valueType": "string",
+        "value": "image",
+        "options": [
+          {
+            "name": "Image",
+            "value": "image"
+          },
+          {
+            "name": "Video",
+            "value": "video"
+          }
+        ]
+      },
+      {
         "component": "reference",
         "valueType": "string",
         "name": "image",
@@ -648,6 +665,31 @@
         "name": "imageAlt",
         "label": "Alt",
         "value": ""
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "videoreference",
+        "label": "Video Reference",
+        "value": "",
+        "description": "Provide a URL for the video background"
+      },
+      {
+        "component": "select",
+        "name": "videobehavior",
+        "label": "Video Behavior (on load)",
+        "valueType": "string",
+        "value": "autoplay",
+        "options": [
+          {
+            "name": "Autoplay",
+            "value": "autoplay"
+          },
+          {
+            "name": "Pause",
+            "value": "pause"
+          }
+        ]
       },
       {
         "component": "richtext",
