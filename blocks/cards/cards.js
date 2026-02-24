@@ -27,6 +27,11 @@ export default function decorate(block) {
     const ctaParagraph = ctaDiv?.querySelector('p');
     const ctaStyle = ctaParagraph?.textContent?.trim() || 'default';
     
+    // Read image fit from the fifth div (index 4)
+    const imageFitDiv = row.children[4];
+    const imageFitParagraph = imageFitDiv?.querySelector('p');
+    const imageFit = imageFitParagraph?.textContent?.trim() || 'cover';
+    
     moveInstrumentation(row, li);
     while (row.firstElementChild) li.append(row.firstElementChild);
     
@@ -56,6 +61,14 @@ export default function decorate(block) {
           p.style.display = 'none'; // Hide the configuration text
         }
       }
+      // Fifth div (index 4) - Image fit configuration
+      else if (index === 4) {
+        div.className = 'cards-config';
+        const p = div.querySelector('p');
+        if (p) {
+          p.style.display = 'none'; // Hide the configuration text
+        }
+      }
       // Any other divs
       else {
         div.className = 'cards-card-body';
@@ -71,12 +84,24 @@ export default function decorate(block) {
       buttonContainer.classList.add(ctaStyle);
     });
     
+    // Store image fit value as data attribute for later application
+    li.dataset.imageFit = imageFit;
+    
     ul.append(li);
   });
   ul.querySelectorAll('picture > img').forEach((img) => {
     const optimizedPic = createOptimizedPicture(img.src, img.alt, false, [{ width: '750' }]);
     moveInstrumentation(img, optimizedPic.querySelector('img'));
     img.closest('picture').replaceWith(optimizedPic);
+  });
+  
+  // Apply image fit to all images after optimization
+  ul.querySelectorAll('li').forEach((li) => {
+    const imageFit = li.dataset.imageFit || 'cover';
+    const cardImages = li.querySelectorAll('img');
+    cardImages.forEach((img) => {
+      img.style.objectFit = imageFit;
+    });
   });
  
   block.textContent = '';

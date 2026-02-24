@@ -428,6 +428,35 @@
             "value": "cta-button-dark"
           }
         ]
+      },
+      {
+        "component": "select",
+        "name": "imagefit",
+        "label": "Image Fit",
+        "valueType": "string",
+        "value": "cover",
+        "options": [
+          {
+            "name": "Cover",
+            "value": "cover"
+          },
+          {
+            "name": "Contain",
+            "value": "contain"
+          },
+          {
+            "name": "Fill",
+            "value": "fill"
+          },
+          {
+            "name": "None",
+            "value": "none"
+          },
+          {
+            "name": "Scale Down",
+            "value": "scale-down"
+          }
+        ]
       }
     ]
   },
